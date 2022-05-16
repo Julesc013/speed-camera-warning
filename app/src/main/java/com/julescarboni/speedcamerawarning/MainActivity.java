@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import com.julescarboni.speedcamerawarning.databinding.ActivityMainBinding;
 
@@ -19,18 +20,18 @@ import androidx.navigation.ui.NavigationUI;
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
-    private ActivityMainBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        com.julescarboni.speedcamerawarning.databinding.ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         /*Add in Oncreate() funtion after setContentView()*/
-        // initiate a Switch
+        // Initiate elements that will be use programmatically throughout the app
         Switch switchToggleService = (Switch) findViewById(R.id.switchToggleService);
+        TextView txtStatus = (TextView) findViewById(R.id.txtStatus);
 
         setSupportActionBar(binding.toolbar);
 

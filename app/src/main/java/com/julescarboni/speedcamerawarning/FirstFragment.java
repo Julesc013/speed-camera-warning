@@ -35,13 +35,21 @@ public class FirstFragment extends Fragment {
                 // Check for updates to the database
 
                 // Check if the service is running
-                // If not, start a new instance of the service
-                // If yes, stop the service instance
+                // If not, start a new instance of the service and create a bubble
+                // If yes, stop the service instance and remove the bubble
+
+
 
                 if (isChecked) {
                     // The toggle is enabled
+
+                    // Update status indicator
+                    binding.txtStatus.setText("Status: ACTIVE!");
                 } else {
                     // The toggle is disabled
+
+                    // Update status indicator
+                    binding.txtStatus.setText("Status: Inactive");
                 }
             }
         });
