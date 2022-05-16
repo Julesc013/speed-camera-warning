@@ -31,6 +31,6 @@ The service will run as an overlay until it is stopped.
 
 ## System requirements.
 
-Android 6.0 (API level 23)
+Android 11 (API level 30)
 
 **Copyright © 2022 Jules Carboni**
