@@ -11,6 +11,7 @@
 
     <!-- Strings in first fragment -->
     <string name="instruction_start_stop">Toggle the switch below to start or stop the camera warning service.</string>
-    <string name="toggle_service">Toggle Service</string>
+    <string name="status_active">Status: SERVICE ACTIVE!</string>
+    <string name="status_inactive">Status: Inactive</string>
 
 </resources>

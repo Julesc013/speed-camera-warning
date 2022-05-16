@@ -8,14 +8,27 @@
 
     <TextView
         android:id="@+id/txtInstruction"
-        android:layout_width="258dp"
-        android:layout_height="33dp"
+        android:layout_width="254dp"
+        android:layout_height="40dp"
         android:text="@string/instruction_start_stop"
         android:textAlignment="center"
         app:layout_constraintBottom_toTopOf="@+id/switchToggleService"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/status_inactive"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/switchToggleService"
+        app:layout_constraintVertical_bias="0.19999999" />
 
     <Switch
         android:id="@+id/switchToggleService"

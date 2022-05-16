@@ -1,5 +1,6 @@
 package com.julescarboni.speedcamerawarning;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,6 +13,8 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+
+@SuppressLint("UseSwitchCompatOrMaterialCode")
 
 public class MainActivity extends AppCompatActivity {
 
