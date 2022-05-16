@@ -15,7 +15,9 @@ When you turn onto a road with a mobile camera certificate, the application will
 
 ## Why should I use this?
 
-Applications such as [Highway Radar](https://highwayradar.com/ "Highway Radar") and [Waze](https://www.waze.com/ "Waze") give accurate location based warnings for fixed speed and red light cameras while driving. However, mobile speed cameras are not included in these systems.
+Applications such as [Highway Radar](https://highwayradar.com/ "Highway Radar") and [Waze](https://www.waze.com/ "Waze") give accurate location based warnings for fixed speed and red light cameras while driving.
+However, mobile speed cameras are not included in these systems.
+
 *Speed Camera Warning* checks to see if the current street your are driving on has certificates for mobile cameras and lets you know via a small indicator icon.
 
 This program is intended to be used in conjunction with apps such as [Highway Radar](https://highwayradar.com/ "Highway Radar").
