@@ -33,8 +33,6 @@
         <service android:name=".LocationService"
             android:foregroundServiceType="location"
             android:enabled="true" />
-        <service android:name=".TimerActivity$TimerService"
-            android:enabled="true"/>
 
     </application>
 
