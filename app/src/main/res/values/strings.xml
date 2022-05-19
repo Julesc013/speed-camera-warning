@@ -15,4 +15,8 @@
     <string name="notification_message">Location service running…</string>
     <string name="ticker_text">Speed camera warning location service started.</string>
 
+
+    <string name="timer_start_button">START</string>
+    <string name="timer_stop_button">STOP</string>
+
 </resources>
