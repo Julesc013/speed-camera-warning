@@ -39,6 +39,7 @@
                 <!-- Sample filter to listen when device boot is completed -->
                 <!-- This type of receiver cant be declared in codes -->
                 <action android:name="com.julescarboni.speedcamerawarning.LocationService" />
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </receiver>
 

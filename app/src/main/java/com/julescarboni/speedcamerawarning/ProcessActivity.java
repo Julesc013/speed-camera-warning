@@ -32,21 +32,25 @@ public class ProcessActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         locationReceiver = new LocationReceiver();
+        // Register receiver
+        registerReceiver(locationReceiver, new IntentFilter(LocationService.INTENT_ID));
+        myReceiverIsRegistered = true;
     }
     @Override
     protected void onResume() {
         super.onResume();
-        if (!myReceiverIsRegistered) {
+        /*if (!myReceiverIsRegistered) {
             registerReceiver(locationReceiver, new IntentFilter(LocationService.INTENT_ID));
             myReceiverIsRegistered = true;
-        }
+        }*/
     }
     @Override
     protected void onPause() {
-        super.onPause();if (myReceiverIsRegistered) {
+        super.onPause();
+        /*if (myReceiverIsRegistered) {
             unregisterReceiver(locationReceiver);
             myReceiverIsRegistered = false;
-        }
+        }*/
     }
 
     private void doProcess() {
