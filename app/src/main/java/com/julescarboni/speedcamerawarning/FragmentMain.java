@@ -1,5 +1,6 @@
 package com.julescarboni.speedcamerawarning;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -31,10 +32,22 @@ public class FragmentMain extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Check if LocationService is already running,
+        // If it is, make the UI reflect that.
+        if (isServiceRunning(LocationService.class)) {
+            // Toggle switch and set status text
+            binding.switchToggleService.setChecked(true);
+            binding.txtStatus.setText(R.string.status_active);
+        }
+
+        /*// Get access to shared preferences
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
+        final SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();*/
+
         binding.switchToggleService.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    // The toggle is enabled
+                if (isChecked && !isServiceRunning(LocationService.class)) {
+                    // The toggle has been enabled
 
                     // Check for updates to the database
 
@@ -46,20 +59,24 @@ public class FragmentMain extends Fragment {
                     // Start service
                     context.startForegroundService(intentLocationService);
 
-                    // Create bubble
-
                     // Update status indicator
                     binding.txtStatus.setText(R.string.status_active);
 
-                } else {
-                    // The toggle is disabled
+                    /*// Make the app remember that the service is active
+                    sharedPreferencesEditor.putBoolean("service_active", true);
+                    sharedPreferencesEditor.apply();*/
 
-                    // Remove bubble
+                } else if (!isChecked && isServiceRunning(LocationService.class)) {
+                    // The toggle has been disabled
 
                     // Stop service
 
                     // Update status indicator
                     binding.txtStatus.setText(R.string.status_inactive);
+
+                    /*// Make the app remember that the service is inactive
+                    sharedPreferencesEditor.putBoolean("service_active", false);
+                    sharedPreferencesEditor.apply();*/
 
                 }
             }
@@ -70,6 +87,17 @@ public class FragmentMain extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    private boolean isServiceRunning(Class<?> serviceClass) {
+        // Check if the service is already running
+        ActivityManager manager = (ActivityManager) getActivity().getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
