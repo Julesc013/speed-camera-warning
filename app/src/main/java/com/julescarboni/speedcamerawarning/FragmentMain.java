@@ -11,7 +11,7 @@ import com.julescarboni.speedcamerawarning.databinding.FragmentFirstBinding;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-public class ToggleService extends Fragment {
+public class FragmentMain extends Fragment {
 
     private FragmentFirstBinding binding;
 
