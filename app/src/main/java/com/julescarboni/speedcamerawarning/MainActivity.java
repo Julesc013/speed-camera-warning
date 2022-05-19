@@ -1,8 +1,6 @@
 package com.julescarboni.speedcamerawarning;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,7 +19,6 @@ import androidx.navigation.ui.NavigationUI;
 
 public class MainActivity extends AppCompatActivity {
 
-    public FragmentCommunicator fragmentCommunicator;
     private AppBarConfiguration appBarConfiguration;
 
     @Override
@@ -48,13 +45,6 @@ public class MainActivity extends AppCompatActivity {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channelLocationService);
         }*/
-
-        // Get context and intent required to start the location service
-        Context context = getApplicationContext();
-        Intent intentLocationService = new Intent(this, LocationService.class); // Build the intent for the service
-        // Pass context and intent to fragment that will manage the service
-        fragmentCommunicator.passContextToFragment(context);
-        fragmentCommunicator.passIntentToFragment(intentLocationService);
 
         // Initiate elements that will be use programmatically throughout the app
         Switch switchToggleService = (Switch) findViewById(R.id.switchToggleService);

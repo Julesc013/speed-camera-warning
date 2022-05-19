@@ -13,11 +13,9 @@ import com.julescarboni.speedcamerawarning.databinding.FragmentFirstBinding;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-public class FragmentMain extends Fragment implements FragmentCommunicator {
+public class FragmentMain extends Fragment {
 
     private FragmentFirstBinding binding;
-    private Context context;
-    private Intent intentLocationService;
 
     @Override
     public View onCreateView(
@@ -42,6 +40,9 @@ public class FragmentMain extends Fragment implements FragmentCommunicator {
 
                     // Download database
 
+                    // Get context and intent required to start the location service
+                    Context context = getActivity().getApplicationContext();
+                    Intent intentLocationService = new Intent(getActivity(), LocationService.class); // Build the intent for the service
                     // Start service
                     context.startForegroundService(intentLocationService);
 
@@ -69,21 +70,6 @@ public class FragmentMain extends Fragment implements FragmentCommunicator {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
-    }
-
-    /* pass data (or null) from Activity to a Fragment */
-    /*@Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        ((MainActivity)getActivity()).fragmentCommunicator = this;
-    }*/
-    @Override
-    public void passContextToFragment(Context context) {
-        this.context = context;
-    }
-    @Override
-    public void passIntentToFragment(Intent intent) {
-        this.intentLocationService = intent;
     }
 
 }
