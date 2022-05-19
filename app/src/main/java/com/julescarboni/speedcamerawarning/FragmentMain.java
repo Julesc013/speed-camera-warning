@@ -96,8 +96,8 @@ public class FragmentMain extends Fragment {
         /*// Make the app remember that the service is active
         sharedPreferencesEditor.putBoolean("service_active", true);
         sharedPreferencesEditor.apply();*/
-
     }
+
     public void stopService() {
         /* Stop the Location Service */
 
@@ -113,7 +113,6 @@ public class FragmentMain extends Fragment {
         /*// Make the app remember that the service is inactive
         sharedPreferencesEditor.putBoolean("service_active", false);
         sharedPreferencesEditor.apply();*/
-
     }
 
 }

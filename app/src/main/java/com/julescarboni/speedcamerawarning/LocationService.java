@@ -1,30 +1,45 @@
 package com.julescarboni.speedcamerawarning;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
+
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 public class LocationService extends Service {
 
     private static final int ONGOING_NOTIFICATION_ID = 1;
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
+    private FusedLocationProviderClient fusedLocationClient;
+    private final Context serviceContext = this;
     Timer timer = new Timer(); // Timer for the service to use
+    private final int SERVICE_INTERVAL = 1000; // TODO: Set to 10 seconds
 
     @Override
     public void onCreate() {
         super.onCreate();
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
     // Execution of service will start on calling this method
@@ -47,54 +62,10 @@ public class LocationService extends Service {
         startForeground(1, notification);
 
         // Activate timer with location getting task
-        timer.scheduleAtFixedRate(timerTaskGetLocation, 0, 1000);
+        timer.scheduleAtFixedRate(timerTaskGetLocation, 0, SERVICE_INTERVAL);
 
         // Return status of the service
         return START_NOT_STICKY;
-
-
-        /*// Create notification channel
-        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-        createChannel(notificationManager);
-
-        // If the notification supports a direct reply action, use
-        // PendingIntent.FLAG_MUTABLE instead.
-        Intent notificationIntent = new Intent(this, LocationService.class);
-        PendingIntent pendingIntent =
-                PendingIntent.getActivity(this, 0, notificationIntent,
-                        PendingIntent.FLAG_IMMUTABLE);
-
-        Notification notification =
-                new Notification.Builder(this, getString(R.string.channel_ID))
-                        .setContentTitle(getText(R.string.notification_title))
-                        .setContentText(getText(R.string.notification_message))
-                        //.setSmallIcon(R.drawable.icon)
-                        .setContentIntent(pendingIntent)
-                        .setTicker(getText(R.string.ticker_text))
-                        .setOngoing(true)
-                        .build();
-
-        startForeground(ONGOING_NOTIFICATION_ID, notification); // Notification ID cannot be 0.*/
-
-
-        /*// Create notification channel
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        createChannel(notificationManager);
-
-        // Create notification
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, getString(R.string.channel_ID))
-                .setContentTitle(getText(R.string.notification_title))
-                .setContentText(getText(R.string.notification_message))
-                .setSmallIcon(R.drawable.ic_launcher_background)
-                .setContentIntent(pendingIntent)
-                .setTicker(getText(R.string.ticker_text))
-                .setOngoing(true);
-
-        // Start notification
-        notificationManager.notify(ONGOING_NOTIFICATION_ID, notificationBuilder.build());
-
-        // Returns the status of the program
-        return START_STICKY;*/
     }
 
     @Override
@@ -114,9 +85,41 @@ public class LocationService extends Service {
     private TimerTask timerTaskGetLocation = new TimerTask() {
         @Override
         public void run() {
+            // DO THE LOCATION SERVICE PROCESS
+            /*  1.  Get location
+             *   2.  Geocode address
+             *   3.  Check if in database
+             *   4.  If so, beep and update bubble color */
 
-            // Get location!!
-            Log.d("myTag", "This is my message");
+            Log.d("LocationService", "Getting location and checking if in database now!");
+
+            // 1. Get location
+            if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener((Activity) serviceContext, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+
+                            // Got last known location. In some rare situations this can be null.
+                            // Often will be "expired" (older than specified minimum).
+                            long age = (Calendar.getInstance().getTimeInMillis() / 1000) - location.getTime();
+                            if (location == null || age > SERVICE_INTERVAL) {
+                                // Last known location is expired, get a fresh location
+                            }
+
+                            // Location is fresh enough, do processing on it
+                            // 2. Geocode address
+
+                        }
+                    });
 
         }
     };
