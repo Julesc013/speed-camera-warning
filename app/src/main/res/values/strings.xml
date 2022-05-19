@@ -1,11 +1,7 @@
 <resources>
+    <!-- App related -->
     <string name="app_name">Speed Camera Warning</string>
-
-    <string name="start">Start</string>
-    <string name="stop">Stop</string>
-
     <string name="action_settings">Settings</string>
-
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">Speed Camera Warning</string>
 
@@ -13,5 +9,14 @@
     <string name="instruction_start_stop">Toggle the switch below to start or stop the camera warning service.</string>
     <string name="status_active">Status: ACTIVE!</string>
     <string name="status_inactive">Status: Inactive</string>
+
+    <!-- For notification channel for foreground location service -->
+    <string name="channel_name">Speed Camera Warning</string>
+    <string name="channel_description">Location service running.</string>
+    <string name="channel_ID">miscellaneous</string>
+    <!-- For foreground location service notification -->
+    <string name="notification_title">Speed Camera Warning</string>
+    <string name="notification_message">Location service running…</string>
+    <string name="ticker_text">Speed camera warning location service started.</string>
 
 </resources>

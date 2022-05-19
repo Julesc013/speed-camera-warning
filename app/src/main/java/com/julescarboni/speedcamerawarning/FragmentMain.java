@@ -1,5 +1,7 @@
 package com.julescarboni.speedcamerawarning;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,9 +13,11 @@ import com.julescarboni.speedcamerawarning.databinding.FragmentFirstBinding;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-public class FragmentMain extends Fragment {
+public class FragmentMain extends Fragment implements FragmentCommunicator {
 
     private FragmentFirstBinding binding;
+    private Context context;
+    private Intent intentLocationService;
 
     @Override
     public View onCreateView(
@@ -31,25 +35,31 @@ public class FragmentMain extends Fragment {
 
         binding.switchToggleService.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-                // Check for updates to the database
-
-                // Check if the service is running
-                // If not, start a new instance of the service and create a bubble
-                // If yes, stop the service instance and remove the bubble
-
-
-
                 if (isChecked) {
                     // The toggle is enabled
 
+                    // Check for updates to the database
+
+                    // Download database
+
+                    // Start service
+                    context.startForegroundService(intentLocationService);
+
+                    // Create bubble
+
                     // Update status indicator
-                    binding.txtStatus.setText("Status: ACTIVE!");
+                    binding.txtStatus.setText(R.string.status_active);
+
                 } else {
                     // The toggle is disabled
 
+                    // Remove bubble
+
+                    // Stop service
+
                     // Update status indicator
-                    binding.txtStatus.setText("Status: Inactive");
+                    binding.txtStatus.setText(R.string.status_inactive);
+
                 }
             }
         });
@@ -59,6 +69,21 @@ public class FragmentMain extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    /* pass data (or null) from Activity to a Fragment */
+    /*@Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        ((MainActivity)getActivity()).fragmentCommunicator = this;
+    }*/
+    @Override
+    public void passContextToFragment(Context context) {
+        this.context = context;
+    }
+    @Override
+    public void passIntentToFragment(Intent intent) {
+        this.intentLocationService = intent;
     }
 
 }
