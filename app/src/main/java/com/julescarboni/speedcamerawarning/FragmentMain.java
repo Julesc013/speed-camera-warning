@@ -87,6 +87,7 @@ public class FragmentMain extends Fragment {
         Intent intentLocationService = new Intent(getActivity(), LocationService.class);
         // Start service
         intentLocationService.putExtra("inputExtra", "Foreground Service Example in Android");
+        //getActivity().startService(intentLocationService);
         ContextCompat.startForegroundService(context, intentLocationService);
         //context.startForegroundService(intentLocationService);
 

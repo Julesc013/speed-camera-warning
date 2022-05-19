@@ -1,5 +1,6 @@
 package com.julescarboni.speedcamerawarning;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,8 +15,6 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-//@SuppressLint("UseSwitchCompatOrMaterialCode")
-
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
@@ -29,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
         /* Add in Oncreate() funtion after setContentView() */
         // Initiate elements that will be use programmatically throughout the app
+        @SuppressLint("UseSwitchCompatOrMaterialCode")
         Switch switchToggleService = (Switch) findViewById(R.id.switchToggleService);
         TextView txtStatus = (TextView) findViewById(R.id.txtStatus);
 

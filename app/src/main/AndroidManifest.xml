@@ -33,6 +33,14 @@
         <service android:name=".LocationService"
             android:foregroundServiceType="location"
             android:enabled="true" />
+        <receiver android:name=".ProcessActivity$LocationReceiver"
+            android:exported="true">
+            <intent-filter>
+                <!-- Sample filter to listen when device boot is completed -->
+                <!-- This type of receiver cant be declared in codes -->
+                <action android:name="com.julescarboni.speedcamerawarning.LocationService" />
+            </intent-filter>
+        </receiver>
 
     </application>
 

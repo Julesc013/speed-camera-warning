@@ -1,45 +1,39 @@
 package com.julescarboni.speedcamerawarning;
 
-import android.Manifest;
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
-
-import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 public class LocationService extends Service {
 
+    public static final String INTENT_ID = "com.julescarboni.speedcamerawarning.LocationService";
     private static final int ONGOING_NOTIFICATION_ID = 1;
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
-    private FusedLocationProviderClient fusedLocationClient;
-    private final Context serviceContext = this;
-    Timer timer = new Timer(); // Timer for the service to use
-    private final int SERVICE_INTERVAL = 1000; // TODO: Set to 10 seconds
+    //private final Context context = getApplicationContext();
+    private Timer timer = new Timer(); // Timer for the service to use
+    public static final int SERVICE_INTERVAL = 1000; // TODO: Set to 10 seconds
+
+    /*@Override
+    public void onStart(Intent intent, int startId) {
+        super.onStart(intent, startId);
+        startService();
+    }*/
 
     @Override
     public void onCreate() {
         super.onCreate();
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
     // Execution of service will start on calling this method
@@ -62,7 +56,7 @@ public class LocationService extends Service {
         startForeground(1, notification);
 
         // Activate timer with location getting task
-        timer.scheduleAtFixedRate(timerTaskGetLocation, 0, SERVICE_INTERVAL);
+        timer.scheduleAtFixedRate(new ProcessTrigger(), 0, SERVICE_INTERVAL);
 
         // Return status of the service
         return START_NOT_STICKY;
@@ -81,51 +75,22 @@ public class LocationService extends Service {
         stopForeground(true);
     }
 
-    // This is what the service actually does!!
-    private TimerTask timerTaskGetLocation = new TimerTask() {
+    // This is what the service actually runs
+    // It simply sends a signal that it is time to run the process code
+
+    private class ProcessTrigger extends TimerTask {
         @Override
         public void run() {
-            // DO THE LOCATION SERVICE PROCESS
-            /*  1.  Get location
-             *   2.  Geocode address
-             *   3.  Check if in database
-             *   4.  If so, beep and update bubble color */
-
-            Log.d("LocationService", "Getting location and checking if in database now!");
-
-            // 1. Get location
-            if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return;
-            }
-            fusedLocationClient.getLastLocation()
-                    .addOnSuccessListener((Activity) serviceContext, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-
-                            // Got last known location. In some rare situations this can be null.
-                            // Often will be "expired" (older than specified minimum).
-                            long age = (Calendar.getInstance().getTimeInMillis() / 1000) - location.getTime();
-                            if (location == null || age > SERVICE_INTERVAL) {
-                                // Last known location is expired, get a fresh location
-                            }
-
-                            // Location is fresh enough, do processing on it
-                            // 2. Geocode address
-
-                        }
-                    });
-
+            // This is the process we do every time the timer triggers
+            Log.d("LocationService", "Timer triggered");
+            Intent intent = new Intent();
+            intent.setAction(INTENT_ID);
+            intent.putExtra("data", "null");
+            sendBroadcast(intent);
         }
-    };
+    }
 
     @Nullable
-    @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
