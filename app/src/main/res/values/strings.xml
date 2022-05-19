@@ -10,10 +10,6 @@
     <string name="status_active">Status: ACTIVE!</string>
     <string name="status_inactive">Status: Inactive</string>
 
-    <!-- For notification channel for foreground location service -->
-    <string name="channel_name">Speed Camera Warning</string>
-    <string name="channel_description">Location service running.</string>
-    <string name="channel_ID">miscellaneous</string>
     <!-- For foreground location service notification -->
     <string name="notification_title">Speed Camera Warning</string>
     <string name="notification_message">Location service running…</string>

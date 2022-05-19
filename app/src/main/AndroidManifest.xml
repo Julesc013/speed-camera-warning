@@ -4,7 +4,7 @@
     package="com.julescarboni.speedcamerawarning">
 
     <!-- Request permissions  -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:allowBackup="true"
@@ -29,7 +29,8 @@
 
         <!-- Mention the Location Service here -->
         <service android:name=".LocationService"
-            android:foregroundServiceType="location" />
+            android:foregroundServiceType="location"
+            android:enabled="true" />
 
     </application>
 
