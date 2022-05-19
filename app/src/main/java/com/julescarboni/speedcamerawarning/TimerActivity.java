@@ -1,12 +1,15 @@
 package com.julescarboni.speedcamerawarning;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -18,12 +21,14 @@ import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
 public class TimerActivity extends AppCompatActivity {
 
     private static final String TAG = TimerActivity.class.getSimpleName();
+    public static final String CHANNEL_ID = "ForegroundServiceChannel";
 
     private TimerService timerService;
     private boolean serviceBound;
@@ -309,6 +314,22 @@ public class TimerActivity extends AppCompatActivity {
 
             return builder.build();
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private void createNotificationChannel(String channelId, String channelName) {
+        // Create notification channel for foreground service notifications
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+
+        // Build API level must be 26 or greater (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O).
+        NotificationChannel serviceChannel = new NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_DEFAULT
+        );
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        manager.createNotificationChannel(serviceChannel);
     }
 
 }
