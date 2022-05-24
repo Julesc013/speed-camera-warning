@@ -206,31 +206,38 @@ public class MainActivity extends AppCompatActivity {
     private void doProcess() {
 
         // THIS IS THE CODE THAT RUNS THE MAIN PROCESS OF THE SERVICE
-        /*  1.  GET LOCATION
-         *  2.  GEOCODE ADDRESS
-         *  3.  CHECK DATABASE
-         *  4.  NOTIFY USER (beep/bubble) */
+        /*  1.  TRY TO GET LOCATION
+         *  2.  CHECK IF GOT LOCATION
+         *  3.  GEOCODE ADDRESS
+         *  4.  CHECK DATABASE
+         *  5.  NOTIFY USER (beep/bubble) */
 
         FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // 1. GET LOCATION
+        /* 1. TRY TO GET LOCATION */
         // Tries to get the last known location
         // If it is out of date or invalid, it will fetch a fresh location
 
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // LOCATION PERMISSIONS NOT ADEQUATE
+            // GET PERMISSIONS FROM USER
+
             // TODO: Consider calling ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
             //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            return;
+
         }
+
+        // Create a new fused location client and try to get a location
         fusedLocationClient.getLastLocation().addOnSuccessListener(
                 this,
                 new OnSuccessListener<Location>() {
                         @Override
                         public void onSuccess(Location location) {
+                            // SUCCESSFULLY QUERIED FUSED LOCATION CLIENT
 
                             // Asked for last known location. In some rare situations this can be null.
                             if (location == null) {
@@ -245,6 +252,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
 
+                            /* 2. CHECK IF GOT LOCATION */
                             // If couldn't get location, handle that and then fail out.
                             if (location == null) {
                                 // COULD NOT GET LOCATION
@@ -261,29 +269,21 @@ public class MainActivity extends AppCompatActivity {
                                 return;
                             } else {
                                 // FOUND LOCATION
-                                if (!locationAvailable) { // If location was previously unavailable...
-                                    locationAvailable = true;
-                                    txtStatus.setText(R.string.status_waiting);
-                                    txtStatus.setTextColor(getResources().getColor(R.color.status_waiting));
-
-                                    // Update bubble (yellow)
-
-                                    // TODO: announce that we found location again
-                                    //       "Location locked on"
-                                }
+                                locationAvailable = true;
                                 // Continue processing...
                             }
 
                             // At this point, the location exists and is fresh enough to do processing on it
-                            // 2. GEOCODE ADDRESS
+                            /* 3. GEOCODE ADDRESS */
+
+                            /* 4. CHECK DATABASE */
+
+
+
+                            /* 5. NOTIFY USER */
 
                             //ACCURACY OF ADDRESS (YELLOW BUBBLE) (WARNING NOT ACCURATE)
-
-                            // 3. CHECK DATABASE
-
-
-
-                            // 4. NOTIFY USER
+                            //ALWAYS WARN IF FIRST TIME RUN
 
                         }
                 });
