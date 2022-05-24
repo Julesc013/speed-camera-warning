@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -20,8 +21,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.julescarboni.speedcamerawarning.databinding.ActivityMainBinding;
 import com.julescarboni.speedcamerawarning.enums.CameraZoneType;
 import com.julescarboni.speedcamerawarning.enums.LocationStatus;
@@ -60,9 +59,9 @@ public class MainActivity extends AppCompatActivity {
     private CameraZoneType currentZoneType = CameraZoneType.NO_CAMERAS;     // Initially so if in mobile camera zone on first try, will warn user.
     private Boolean firstTimeRun = true;    // Is this the first time the process is running (e.g. on startup)?
 
-    private List<CameraLocation> mobileCameraLocations;
-    //public List<CameraLocation> fixedCameraLocations;
-    //public List<CameraLocation> wetFilmCameraLocations;
+    private List<CameraLocation> mobileCameraLocations = new ArrayList<>();
+    //public List<CameraLocation> fixedCameraLocations = new ArrayList<>();
+    //public List<CameraLocation> wetFilmCameraLocations = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,9 +110,11 @@ public class MainActivity extends AppCompatActivity {
         switchToggleService.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked && !isServiceRunning(LocationService.class)) {
-                    startService(); // The toggle has been enabled
+                    // The toggle has been enabled
+                    startService();
                 } else if (!isChecked && isServiceRunning(LocationService.class)) {
-                    stopService(); // The toggle has been disabled
+                    // The toggle has been disabled
+                    stopService();
                 }
             }
         });
@@ -182,14 +183,20 @@ public class MainActivity extends AppCompatActivity {
     public void startService() {
         /* Start the Location Service */
 
+        /* Firstly update the databases of camera locations */
+
         // Update status indicator
         txtService.setText(R.string.service_starting);
 
         // Check for updates to the database
+        // Only download if not up to date
         // TODO: check for database updates
 
         // Download database
         // TODO: download database!
+        mobileCameraLocations.add(new CameraLocation("Berringa Road", "Park Orchards")); //TODO: TEMP
+
+        /* Secondly start the service*/
 
         // Get context and intent required to start the location service
         Context context = this.getApplicationContext();
@@ -221,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
         txtStatus.setTextColor(getResources().getColor(R.color.status_service_inactive));
     }
 
-    private void GetLocationPermissions() {
+    private void getLocationPermissions() {
         // LOCATION PERMISSIONS NOT ADEQUATE
         // GET PERMISSIONS FROM USER
         // TODO: Consider calling ActivityCompat#requestPermissions
@@ -234,13 +241,13 @@ public class MainActivity extends AppCompatActivity {
         return;
     }
 
-    private Location GetFreshLocation(FusedLocationProviderClient fusedLocationClient) {
+    private Location getFreshLocation(FusedLocationProviderClient fusedLocationClient) {
         // GET FRESH CURRENT LOCATION USING ANY MEANS NECESSARY
         // TODO: Might have to move this into the doProcess() function because it cannot be called here.
         // Create a new fused location client and try to get a location
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            GetLocationPermissions();
+            getLocationPermissions();
         }
         final Location[] currentLocation = new Location[1];
         /*fusedLocationClient.getCurrentLocation().addOnSuccessListener(
@@ -255,7 +262,7 @@ public class MainActivity extends AppCompatActivity {
         return currentLocation[0];
     }
 
-    private DoProcessReturnType doProcess(List<CameraLocation> myMobileCameraLocations) {
+    private DoProcessReturnType doProcess() {
 
         // THIS IS THE CODE THAT RUNS THE MAIN PROCESS OF THE SERVICE
         /*  1.  TRY TO GET LOCATION
@@ -268,7 +275,8 @@ public class MainActivity extends AppCompatActivity {
         // Tries to get the last known location
         // If it is out of date or invalid, it will fetch a fresh location
 
-        Location[] lastKnownLocation = new Location[1]; // For getting location OUT of a fused location provider
+        // (PLAN A) FUSED LOCATION PROVIDER METHOD
+        /*Location[] lastKnownLocation = new Location[1]; // For getting location OUT of a fused location provider
         FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             GetLocationPermissions();
@@ -283,7 +291,25 @@ public class MainActivity extends AppCompatActivity {
                             lastKnownLocation[0] = location;
                         }
                 });
-        Location location = lastKnownLocation[0];
+        Location location = lastKnownLocation[0];*/
+
+        // (PLAN B) TRADITIONAL LOCATION MANAGER METHOD
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        List<String> providers = locationManager.getProviders(true);
+        Location location = null;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            getLocationPermissions();
+        }
+        for (String provider : providers) {
+            Location l = locationManager.getLastKnownLocation(provider);
+            if (l == null) {
+                continue;
+            }
+            if (location == null || l.getAccuracy() < location.getAccuracy()) {
+                // Found best last known location:
+                location = l;
+            }
+        }
 
         // Asked for last known location. In some rare situations this can be null.
         if (location == null) {
@@ -344,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
                 // TODO: Check if has fixed or wet film cameras
 
                 // Check if has a mobile camera
-                for (CameraLocation cameraLocation : myMobileCameraLocations) {
+                for (CameraLocation cameraLocation : mobileCameraLocations) {
                     if (cameraLocation.isMatch(addressThoroughfare, addressLocality)) {
                         // Mobile camera certificate found
                         return new DoProcessReturnType(LocationStatus.GOOD_LOCATION, CameraZoneType.MOBILE_ONLY, addresses);
@@ -450,7 +476,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("LocationReceiver", "Trigger received, calling process now");
 
             // Do processing... Check what the resultant status of our current location is.
-            DoProcessReturnType result = mainActivity.doProcess(mainActivity.mobileCameraLocations);
+            DoProcessReturnType result = mainActivity.doProcess();
 
             //TODO: TEMP DEBUG REMOVE THIS CODE
             List<Address> addresses = result.getAddresses();
@@ -494,9 +520,9 @@ public class MainActivity extends AppCompatActivity {
         private final String roadName;
         private final String suburbName;
 
-        public CameraLocation(String newRoadName, String newSuburbName) {
-            this.roadName = newRoadName;
-            this.suburbName = newSuburbName;
+        public CameraLocation(String roadName, String suburbName) {
+            this.roadName = roadName;
+            this.suburbName = suburbName;
         }
         public Boolean isMatch(String thisRoadName, String thisSuburbName){
             return Objects.equals(roadName.toLowerCase(), thisRoadName.toLowerCase())
