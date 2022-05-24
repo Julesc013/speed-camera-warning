@@ -7,6 +7,20 @@
     tools:context=".FragmentFirst">
 
     <TextView
+        android:id="@+id/txtStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.501"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtService"
+        app:layout_constraintVertical_bias="0.15" />
+
+    <TextView
         android:id="@+id/txtInstruction"
         android:layout_width="254dp"
         android:layout_height="40dp"
@@ -18,10 +32,9 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/txtStatus"
+        android:id="@+id/txtService"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/status_inactive"
         android:textAlignment="center"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
