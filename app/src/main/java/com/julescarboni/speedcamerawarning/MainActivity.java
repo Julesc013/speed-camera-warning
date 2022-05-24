@@ -27,6 +27,7 @@ import com.julescarboni.speedcamerawarning.enums.CameraZoneType;
 import com.julescarboni.speedcamerawarning.enums.LocationStatus;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -42,23 +43,26 @@ import androidx.navigation.ui.NavigationUI;
 
 public class MainActivity extends AppCompatActivity {
 
+    // TODO: MAKE THINGS PRIVATE!!!!
+
     private AppBarConfiguration appBarConfiguration;
 
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private Switch switchToggleService;
     private TextView txtService;
     private TextView txtStatus;
+    private TextView txtTempLocation; //TODO: REMOVE THIS TEMP
 
     private LocationReceiver locationReceiver = null;
     private Boolean myReceiverIsRegistered = false;
 
-    private LocationStatus locationStatus = LocationStatus.GOOD_LOCATION;   // Initially so if location not found on first try, will warn user.
+    private LocationStatus currentLocationStatus = LocationStatus.GOOD_LOCATION;   // Initially so if location not found on first try, will warn user.
     private CameraZoneType currentZoneType = CameraZoneType.NO_CAMERAS;     // Initially so if in mobile camera zone on first try, will warn user.
     private Boolean firstTimeRun = true;    // Is this the first time the process is running (e.g. on startup)?
 
     private List<CameraLocation> mobileCameraLocations;
-    //private List<CameraLocation> fixedCameraLocations;
-    //private List<CameraLocation> wetFilmCameraLocations;
+    //public List<CameraLocation> fixedCameraLocations;
+    //public List<CameraLocation> wetFilmCameraLocations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
         switchToggleService = (Switch) findViewById(R.id.switchToggleService);
         txtService = (TextView) findViewById(R.id.txtService);
         txtStatus = (TextView) findViewById(R.id.txtStatus);
+        txtTempLocation = (TextView) findViewById(R.id.txtTempLocation); //TODO: REMOVE THIS TEMP
 
         setSupportActionBar(binding.toolbar);
 
@@ -114,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
     /*@Override
     protected void onResume() {
         super.onResume();
@@ -123,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
             myReceiverIsRegistered = true;
         }
     }
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -214,7 +221,41 @@ public class MainActivity extends AppCompatActivity {
         txtStatus.setTextColor(getResources().getColor(R.color.status_service_inactive));
     }
 
-    private void doProcess() {
+    private void GetLocationPermissions() {
+        // LOCATION PERMISSIONS NOT ADEQUATE
+        // GET PERMISSIONS FROM USER
+        // TODO: Consider calling ActivityCompat#requestPermissions
+        // here to request the missing permissions, and then overriding
+        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+        //                                          int[] grantResults)
+        // to handle the case where the user grants the permission. See the documentation
+        // for ActivityCompat#requestPermissions for more details.
+        // TODO: Implement this!
+        return;
+    }
+
+    private Location GetFreshLocation(FusedLocationProviderClient fusedLocationClient) {
+        // GET FRESH CURRENT LOCATION USING ANY MEANS NECESSARY
+        // TODO: Might have to move this into the doProcess() function because it cannot be called here.
+        // Create a new fused location client and try to get a location
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            GetLocationPermissions();
+        }
+        final Location[] currentLocation = new Location[1];
+        /*fusedLocationClient.getCurrentLocation().addOnSuccessListener(
+                this,
+                new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // SUCCESSFULLY QUERIED FUSED LOCATION CLIENT
+                        currentLocation[0] = location;
+                    }
+                });*/
+        return currentLocation[0];
+    }
+
+    private DoProcessReturnType doProcess(List<CameraLocation> myMobileCameraLocations) {
 
         // THIS IS THE CODE THAT RUNS THE MAIN PROCESS OF THE SERVICE
         /*  1.  TRY TO GET LOCATION
@@ -223,25 +264,15 @@ public class MainActivity extends AppCompatActivity {
          *  4.  CHECK DATABASE
          *  5.  NOTIFY USER (beep/bubble) */
 
-        FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
         /* 1. TRY TO GET LOCATION */
         // Tries to get the last known location
         // If it is out of date or invalid, it will fetch a fresh location
 
+        Location[] lastKnownLocation = new Location[1]; // For getting location OUT of a fused location provider
+        FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // LOCATION PERMISSIONS NOT ADEQUATE
-            // GET PERMISSIONS FROM USER
-
-            // TODO: Consider calling ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-
+            GetLocationPermissions();
         }
-
         // Create a new fused location client and try to get a location
         fusedLocationClient.getLastLocation().addOnSuccessListener(
                 this,
@@ -249,99 +280,94 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess(Location location) {
                             // SUCCESSFULLY QUERIED FUSED LOCATION CLIENT
-
-                            // Asked for last known location. In some rare situations this can be null.
-                            if (location == null) {
-                                // Failed to get last known location, get a fresh location
-                                location = getFreshLocation();
-                            } else {
-                                // Got last known location, now check if it is older than the timer interval (what we call "expired")
-                                long age = (Calendar.getInstance().getTimeInMillis() / 1000) - location.getTime();
-                                if (age > LocationService.SERVICE_INTERVAL) {
-                                    // Last known location is expired, get a fresh location
-                                    location = getFreshLocation();
-                                }
-                            }
-
-                            /* 2. CHECK IF GOT LOCATION */
-                            // If couldn't get location, handle that and then fail out.
-                            if (location == null) {
-                                // COULD NOT GET LOCATION
-                                updateStatus(LocationStatus.NO_LOCATION, CameraZoneType.UNCERTAIN);
-                                return;
-                            }
-                            // Handle FOUND LOCATION later, because need to see what address or camera status is before updating.
-                            // At this point, the location exists and is fresh enough to do processing on it
-
-
-                            /* 3. GEOCODE ADDRESS */
-
-                            try {
-                                Geocoder geocoder = new Geocoder(getApplication().getApplicationContext(), Locale.getDefault());
-                                // TODO: Use updated getFromLocation() because this method can block up threads
-                                List<Address> addresses = geocoder.getFromLocation(
-                                        location.getLatitude(),
-                                        location.getLongitude(),
-                                        1);
-                                if (addresses.isEmpty()) {
-                                    // COULD NOT GET ADDRESS FROM LOCATION
-                                    updateStatus(LocationStatus.UNCERTAIN_LOCATION, CameraZoneType.UNCERTAIN);
-                                    return;
-                                }
-                                else {
-
-                                    // GOT LOCATION
-
-                                    // Record location details for lookup in next step
-                                    //yourtextboxname.setText(addresses.get(0).getFeatureName() + ", " + addresses.get(0).getLocality() +", " + addresses.get(0).getAdminArea() + ", " + addresses.get(0).getCountryName());
-                                    String addressFeatureName = addresses.get(0).getFeatureName();
-                                    String addressLocality = addresses.get(0).getLocality();
-
-                                    // Check if it is accurate or approximate
-                                    if (addressFeatureName == null) {
-                                        // TODO: CHECK THIS CODE AND SEE WHAT PARTS OF THE ADDRESS EQUAL WHAT
-                                        // COULD NOT GET ACCURATE ADDRESS FROM LOCATION
-                                        updateStatus(LocationStatus.UNCERTAIN_LOCATION, CameraZoneType.UNCERTAIN);
-                                        return;
-                                    }
-
-
-                                    /* 4. CHECK DATABASE */
-
-                                    // Search through all databases to see if address has a camera
-                                    // TODO: Check if has fixed or wet film cameras
-
-                                    // Check if has a mobile camera
-                                    for (CameraLocation cameraLocation : mobileCameraLocations) {
-                                        if (cameraLocation.isMatch(addressFeatureName, addressLocality)) {
-                                            // Mobile camera certificate found
-                                            updateStatus(LocationStatus.GOOD_LOCATION, CameraZoneType.MOBILE_ONLY);
-                                            return;
-                                        }
-                                    }
-                                    // No cameras
-                                    updateStatus(LocationStatus.GOOD_LOCATION, CameraZoneType.NO_CAMERAS);
-                                    return;
-
-                                    // All cases handled and returned.
-                                    /* DONE. PROCESSING FINISHED. */
-
-                                }
-                            } catch (IOException e) {
-                                // TODO: Handle this exception more appropriately... Why IO Exception? Can fix it?
-                                // COULD NOT GET ADDRESS FROM LOCATION
-                                updateStatus(LocationStatus.UNCERTAIN_LOCATION, CameraZoneType.UNCERTAIN);
-                                return;
-                            }
+                            lastKnownLocation[0] = location;
                         }
                 });
+        Location location = lastKnownLocation[0];
 
+        // Asked for last known location. In some rare situations this can be null.
+        if (location == null) {
+            // Failed to get last known location, get a fresh location
+            // TODO: GET FRESH LOCATION
+        } else {
+            // Got last known location, now check if it is older than the timer interval (what we call "expired")
+            long age = (Calendar.getInstance().getTimeInMillis() / 1000) - location.getTime();
+            if (age > LocationService.SERVICE_INTERVAL) {
+                // Last known location is expired, get a fresh location
+                // TODO: GET FRESH LOCATION
+            }
+        }
+
+        /* 2. CHECK IF GOT LOCATION */
+        // If couldn't get location, handle that and then fail out.
+        if (location == null) {
+            // COULD NOT GET LOCATION
+            return new DoProcessReturnType(LocationStatus.NO_LOCATION, CameraZoneType.UNCERTAIN, new ArrayList<>());
+        }
+        // Handle FOUND LOCATION later, because need to see what address or camera status is before updating.
+        // At this point, the location exists and is fresh enough to do processing on it
+
+
+        /* 3. GEOCODE ADDRESS */
+
+        try {
+            Geocoder geocoder = new Geocoder(getApplication().getApplicationContext(), Locale.getDefault());
+            // TODO: Use updated getFromLocation() because this method can block up threads
+            List<Address> addresses = geocoder.getFromLocation(
+                    location.getLatitude(),
+                    location.getLongitude(),
+                    1);
+            if (addresses.isEmpty()) {
+                // COULD NOT GET ADDRESS FROM LOCATION
+                return new DoProcessReturnType(LocationStatus.UNCERTAIN_LOCATION, CameraZoneType.UNCERTAIN, addresses);
+            }
+            else {
+
+                // GOT LOCATION
+
+                // Record location details for lookup in next step
+                //yourtextboxname.setText(addresses.get(0).getFeatureName() + ", " + addresses.get(0).getLocality() +", " + addresses.get(0).getAdminArea() + ", " + addresses.get(0).getCountryName());
+                String addressThoroughfare = addresses.get(0).getThoroughfare();
+                String addressLocality = addresses.get(0).getLocality();
+
+                // Check if it is accurate or approximate
+                if (addressThoroughfare == null) {
+                    // TODO: CHECK THIS CODE AND SEE WHAT PARTS OF THE ADDRESS EQUAL WHAT
+                    // COULD NOT GET ACCURATE ADDRESS FROM LOCATION
+                    return new DoProcessReturnType(LocationStatus.UNCERTAIN_LOCATION, CameraZoneType.UNCERTAIN, addresses);
+                }
+
+
+                /* 4. CHECK DATABASE */
+
+                // Search through all databases to see if address has a camera
+                // TODO: Check if has fixed or wet film cameras
+
+                // Check if has a mobile camera
+                for (CameraLocation cameraLocation : myMobileCameraLocations) {
+                    if (cameraLocation.isMatch(addressThoroughfare, addressLocality)) {
+                        // Mobile camera certificate found
+                        return new DoProcessReturnType(LocationStatus.GOOD_LOCATION, CameraZoneType.MOBILE_ONLY, addresses);
+                    }
+                }
+                // No cameras
+                return new DoProcessReturnType(LocationStatus.GOOD_LOCATION, CameraZoneType.NO_CAMERAS, addresses);
+
+                // All cases handled and returned.
+                /* DONE. PROCESSING FINISHED. */
+
+            }
+        } catch (IOException e) {
+            // TODO: Handle this exception more appropriately... Why IO Exception? Can fix it?
+            // COULD NOT GET ADDRESS FROM LOCATION
+            return new DoProcessReturnType(LocationStatus.UNCERTAIN_LOCATION, CameraZoneType.UNCERTAIN, new ArrayList<>());
+        }
     }
 
-    public void updateStatus(LocationStatus newLocationStatus, CameraZoneType newCameraZoneType) {
+    public void updateStatus(MainActivity mainActivity, LocationStatus newLocationStatus, CameraZoneType newCameraZoneType) {
         /* 5. NOTIFY USER */
 
-        if (locationStatus != newLocationStatus || currentZoneType != newCameraZoneType || firstTimeRun) {
+        if (currentLocationStatus != newLocationStatus || currentZoneType != newCameraZoneType || firstTimeRun) {
             // If something has changed...
             // Always update and warn if this is the first time run.
 
@@ -394,8 +420,8 @@ public class MainActivity extends AppCompatActivity {
                     break;*/
             }
 
-            txtStatus.setText(newStatusText);
-            txtStatus.setTextColor(newStatusColor);
+            mainActivity.txtStatus.setText(newStatusText);
+            mainActivity.txtStatus.setTextColor(newStatusColor);
 
             // Update bubble
             // TODO: update bubble
@@ -404,19 +430,9 @@ public class MainActivity extends AppCompatActivity {
             // TODO: announce new status
 
             // Update memory
-            locationStatus = newLocationStatus;
-            currentZoneType = newCameraZoneType;
+            mainActivity.currentLocationStatus = newLocationStatus;
+            mainActivity.currentZoneType = newCameraZoneType;
         }
-
-    }
-
-    public Location getFreshLocation() {
-        // Get a fresh location from a fused location service
-
-        // TODO: GET FRESH LOCATION
-        // Can pass fused service as input to this function?
-
-        return new Location("null");
 
     }
 
@@ -432,11 +448,47 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent ) {
             Log.d("LocationReceiver", "Trigger received, calling process now");
-            mainActivity.doProcess();
+
+            // Do processing... Check what the resultant status of our current location is.
+            DoProcessReturnType result = mainActivity.doProcess(mainActivity.mobileCameraLocations);
+
+            //TODO: TEMP DEBUG REMOVE THIS CODE
+            List<Address> addresses = result.getAddresses();
+            if (addresses.size() != 0) {
+                String tempAddress = addresses.get(0).getAddressLine(0) + ", " + addresses.get(0).getAdminArea() + ", " + addresses.get(0).getCountryName();
+                mainActivity.txtTempLocation.setText(tempAddress);
+            }
+
+            // Use status to update indicators...
+            // Text views, Bubble, and Audio alert
+            mainActivity.updateStatus(mainActivity, result.getLocationStatus(), result.getCameraZoneType());
         }
     }
 
-    public class CameraLocation {
+    public static class DoProcessReturnType {
+        // CLASS USED TO RETURN STATUSES FROM DO PROCESS FUNCTION
+
+        private final LocationStatus locationStatus;
+        private final CameraZoneType cameraZoneType;
+        private final List<Address> addresses;
+
+        public DoProcessReturnType(LocationStatus locationStatus, CameraZoneType cameraZoneType, List<Address> addresses) {
+            this.locationStatus = locationStatus;
+            this.cameraZoneType = cameraZoneType;
+            this.addresses = addresses;
+        }
+        public LocationStatus getLocationStatus(){
+            return this.locationStatus;
+        }
+        public CameraZoneType getCameraZoneType(){
+            return this.cameraZoneType;
+        }
+        public List<Address> getAddresses(){
+            return this.addresses;
+        }
+    }
+
+    public static class CameraLocation {
         // CLASS USED TO STORE EACH CAMERA LOCATION
 
         private final String roadName;
@@ -447,7 +499,8 @@ public class MainActivity extends AppCompatActivity {
             this.suburbName = newSuburbName;
         }
         public Boolean isMatch(String thisRoadName, String thisSuburbName){
-            return Objects.equals(roadName, thisRoadName) && Objects.equals(suburbName, thisSuburbName);
+            return Objects.equals(roadName.toLowerCase(), thisRoadName.toLowerCase())
+                    && Objects.equals(suburbName.toLowerCase(), thisSuburbName.toLowerCase());
         }
     }
 

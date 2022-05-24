@@ -6,19 +6,16 @@
     android:layout_height="match_parent"
     tools:context=".FragmentFirst">
 
-    <TextView
-        android:id="@+id/txtStatus"
+    <Switch
+        android:id="@+id/switchToggleService"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:textAlignment="center"
-        android:textStyle="bold"
+        android:minHeight="48dp"
+        android:text="Service"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtService"
-        app:layout_constraintVertical_bias="0.15" />
+        app:layout_constraintTop_toBottomOf="@+id/txtInstruction" />
 
     <TextView
         android:id="@+id/txtInstruction"
@@ -43,15 +40,27 @@
         app:layout_constraintTop_toBottomOf="@+id/switchToggleService"
         app:layout_constraintVertical_bias="0.19999999" />
 
-    <Switch
-        android:id="@+id/switchToggleService"
+    <TextView
+        android:id="@+id/txtTempLocation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:text="Service"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="205dp"
+        tools:layout_editor_absoluteY="436dp" />
+
+    <TextView
+        android:id="@+id/txtStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:textAlignment="center"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.501"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtInstruction" />
+        app:layout_constraintTop_toBottomOf="@+id/txtService"
+        app:layout_constraintVertical_bias="0.15" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

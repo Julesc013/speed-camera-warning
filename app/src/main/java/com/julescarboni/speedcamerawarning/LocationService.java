@@ -23,7 +23,7 @@ public class LocationService extends Service {
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
     //private final Context context = getApplicationContext();
     private Timer timer = new Timer(); // Timer for the service to use
-    public static final int SERVICE_INTERVAL = 1000; // TODO: Set to 10 seconds
+    public static final int SERVICE_INTERVAL = 5000; // TODO: Set to 10 seconds
 
     /*@Override
     public void onStart(Intent intent, int startId) {
@@ -41,6 +41,7 @@ public class LocationService extends Service {
 
         // Create foreground service notification
         // TODO: Add icon to notification
+        // TODO: Make notification text custom and resonable
 
         String input = intent.getStringExtra("inputExtra");
         createNotificationChannel();
