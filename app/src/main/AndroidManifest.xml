@@ -24,9 +24,13 @@
             android:theme="@style/Theme.SpeedCameraWarning.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".ProcessActivity"
+            android:exported="true"
+            android:theme="@style/Theme.SpeedCameraWarning.NoActionBar">
         </activity>
 
         <!-- Mention the Location Service here -->
