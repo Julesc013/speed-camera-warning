@@ -11,6 +11,7 @@
     <string name="service_inactive">Service: Inactive</string>
     <string name="service_starting">Service: Starting…</string>
     <!--<string name="service_downloading">Service: Downloading database…</string>-->
+    <string name="status_both_cameras">Status: IN MOBILE CAMERA ZONE!</string>
     <string name="status_mobile_cameras">Status: IN MOBILE CAMERA ZONE!</string>
     <string name="status_fixed_cameras">Status: Fixed cameras!</string>
     <string name="status_no_cameras">Status: Safe, no cameras</string>

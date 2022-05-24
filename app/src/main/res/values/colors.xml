@@ -7,6 +7,7 @@
     <color name="grey_700">#FF616161</color>
 
     <!-- Colours for status indicators -->
+    <color name="status_both_cameras">#EC2222</color>
     <color name="status_mobile_cameras">#EC2222</color>
     <color name="status_fixed_cameras">#E3610B</color>
     <color name="status_no_cameras">#37951E</color>
