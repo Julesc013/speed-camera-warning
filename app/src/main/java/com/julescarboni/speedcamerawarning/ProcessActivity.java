@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.TextView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -25,13 +24,11 @@ public class ProcessActivity extends AppCompatActivity {
     LocationReceiver locationReceiver = null;
     Boolean myReceiverIsRegistered = false;
 
-    //TEMP
-    TextView txtStatus = (TextView) findViewById(R.id.txtStatus);
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         locationReceiver = new LocationReceiver();
+        locationReceiver.setProcessActivityHandler(this);
         // Register receiver
         registerReceiver(locationReceiver, new IntentFilter(LocationService.INTENT_ID));
         myReceiverIsRegistered = true;
@@ -39,18 +36,19 @@ public class ProcessActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        /*if (!myReceiverIsRegistered) {
+        if (!myReceiverIsRegistered) {
+            locationReceiver.setProcessActivityHandler(this);
             registerReceiver(locationReceiver, new IntentFilter(LocationService.INTENT_ID));
             myReceiverIsRegistered = true;
-        }*/
+        }
     }
     @Override
     protected void onPause() {
         super.onPause();
-        /*if (myReceiverIsRegistered) {
+        if (myReceiverIsRegistered) {
             unregisterReceiver(locationReceiver);
             myReceiverIsRegistered = false;
-        }*/
+        }
     }
 
     private void doProcess() {
@@ -95,8 +93,6 @@ public class ProcessActivity extends AppCompatActivity {
                     // Location is fresh enough to do processing on it now
                     // 2. GEOCODE ADDRESS
 
-                    //TEMP
-                    txtStatus.setText(location.getLatitude() + " " + location.getLongitude());
 
 
                     // 3. CHECK DATABASE
@@ -113,10 +109,11 @@ public class ProcessActivity extends AppCompatActivity {
     public static class LocationReceiver extends BroadcastReceiver {
         // RECEIVES TIMER TRIGGERS FROM LOCATION SERVICE
 
-        // Create new instance of the process activity
-        // This instance contains all the code that we need to run each time the timer is triggered
-        // I.e. it is the foreground process code
-        ProcessActivity processActivity = new ProcessActivity();
+        ProcessActivity processActivity = null;
+
+        void setProcessActivityHandler(ProcessActivity processActivity){
+            this.processActivity = processActivity;
+        }
 
         @Override
         public void onReceive(Context context, Intent intent ) {

@@ -18,7 +18,7 @@ import androidx.core.app.NotificationCompat;
 
 public class LocationService extends Service {
 
-    public static final String INTENT_ID = "com.julescarboni.speedcamerawarning.LocationService";
+    public static final String INTENT_ID = "com.julescarboni.speedcamerawarning.TIMER_TICK";
     private static final int ONGOING_NOTIFICATION_ID = 1;
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
     //private final Context context = getApplicationContext();
@@ -85,7 +85,7 @@ public class LocationService extends Service {
             Log.d("LocationService", "Timer triggered");
             Intent intent = new Intent();
             intent.setAction(INTENT_ID);
-            intent.putExtra("data", "null");
+            //intent.putExtra("data", "null");
             sendBroadcast(intent);
         }
     }
@@ -111,5 +111,4 @@ public class LocationService extends Service {
             manager.createNotificationChannel(serviceChannel);
         }
     }
-
 }
