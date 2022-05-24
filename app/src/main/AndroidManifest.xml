@@ -27,17 +27,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ProcessActivity"
-            android:exported="true"
-            android:theme="@style/Theme.SpeedCameraWarning.NoActionBar">
-        </activity>
 
         <!-- Mention the Location Service here -->
         <service android:name=".LocationService"
             android:foregroundServiceType="location"
             android:enabled="true" />
-        <!--<receiver android:name=".ProcessActivity$LocationReceiver"
+        <!--<receiver android:name=".MainActivity$LocationReceiver"
             android:exported="true">
             <intent-filter>
                 &lt;!&ndash; Sample filter to listen when device boot is completed &ndash;&gt;

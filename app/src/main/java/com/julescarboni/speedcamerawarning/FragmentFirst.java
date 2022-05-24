@@ -10,7 +10,7 @@ import com.julescarboni.speedcamerawarning.databinding.FragmentFirstBinding;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-public class FragmentMain extends Fragment {
+public class FragmentFirst extends Fragment {
 
     private FragmentFirstBinding binding;
 
