@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,8 +23,14 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.julescarboni.speedcamerawarning.databinding.ActivityMainBinding;
+import com.julescarboni.speedcamerawarning.enums.CameraZoneType;
+import com.julescarboni.speedcamerawarning.enums.LocationStatus;
 
+import java.io.IOException;
 import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -44,10 +52,13 @@ public class MainActivity extends AppCompatActivity {
     private LocationReceiver locationReceiver = null;
     private Boolean myReceiverIsRegistered = false;
 
-    private Boolean locationAvailable = true;   // Initially true, so if location not found on first try, will warn user.
-    private Boolean inSpeedCameraZone = false;  // Initially false, so if in mobile camera zone on first try, will warn user.
-    private Boolean firstTimeRun = true;        // Is this the first time the process is running (e.g. on startup)?
+    private LocationStatus locationStatus = LocationStatus.GOOD_LOCATION;   // Initially so if location not found on first try, will warn user.
+    private CameraZoneType currentZoneType = CameraZoneType.NO_CAMERAS;     // Initially so if in mobile camera zone on first try, will warn user.
+    private Boolean firstTimeRun = true;    // Is this the first time the process is running (e.g. on startup)?
 
+    private List<CameraLocation> mobileCameraLocations;
+    //private List<CameraLocation> fixedCameraLocations;
+    //private List<CameraLocation> wetFilmCameraLocations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -256,37 +267,146 @@ public class MainActivity extends AppCompatActivity {
                             // If couldn't get location, handle that and then fail out.
                             if (location == null) {
                                 // COULD NOT GET LOCATION
-                                if (locationAvailable || firstTimeRun) { // If location was previously available...
-                                    locationAvailable = false;
-                                    txtStatus.setText(R.string.status_no_location);
-                                    txtStatus.setTextColor(getResources().getColor(R.color.status_no_location));
-
-                                    // Update bubble (grey)
-
-                                    // TODO: announce that we lost location
-                                    //       "Location lost"
-                                }
+                                updateStatus(LocationStatus.NO_LOCATION, CameraZoneType.UNCERTAIN);
                                 return;
-                            } else {
-                                // FOUND LOCATION
-                                locationAvailable = true;
-                                // Continue processing...
                             }
-
+                            // Handle FOUND LOCATION later, because need to see what address or camera status is before updating.
                             // At this point, the location exists and is fresh enough to do processing on it
+
+
                             /* 3. GEOCODE ADDRESS */
 
-                            /* 4. CHECK DATABASE */
+                            try {
+                                Geocoder geocoder = new Geocoder(getApplication().getApplicationContext(), Locale.getDefault());
+                                // TODO: Use updated getFromLocation() because this method can block up threads
+                                List<Address> addresses = geocoder.getFromLocation(
+                                        location.getLatitude(),
+                                        location.getLongitude(),
+                                        1);
+                                if (addresses.isEmpty()) {
+                                    // COULD NOT GET ADDRESS FROM LOCATION
+                                    updateStatus(LocationStatus.UNCERTAIN_LOCATION, CameraZoneType.UNCERTAIN);
+                                    return;
+                                }
+                                else {
+
+                                    // GOT LOCATION
+
+                                    // Record location details for lookup in next step
+                                    //yourtextboxname.setText(addresses.get(0).getFeatureName() + ", " + addresses.get(0).getLocality() +", " + addresses.get(0).getAdminArea() + ", " + addresses.get(0).getCountryName());
+                                    String addressFeatureName = addresses.get(0).getFeatureName();
+                                    String addressLocality = addresses.get(0).getLocality();
+
+                                    // Check if it is accurate or approximate
+                                    if (addressFeatureName == null) {
+                                        // TODO: CHECK THIS CODE AND SEE WHAT PARTS OF THE ADDRESS EQUAL WHAT
+                                        // COULD NOT GET ACCURATE ADDRESS FROM LOCATION
+                                        updateStatus(LocationStatus.UNCERTAIN_LOCATION, CameraZoneType.UNCERTAIN);
+                                        return;
+                                    }
 
 
+                                    /* 4. CHECK DATABASE */
 
-                            /* 5. NOTIFY USER */
+                                    // Search through all databases to see if address has a camera
+                                    // TODO: Check if has fixed or wet film cameras
 
-                            //ACCURACY OF ADDRESS (YELLOW BUBBLE) (WARNING NOT ACCURATE)
-                            //ALWAYS WARN IF FIRST TIME RUN
+                                    // Check if has a mobile camera
+                                    for (CameraLocation cameraLocation : mobileCameraLocations) {
+                                        if (cameraLocation.isMatch(addressFeatureName, addressLocality)) {
+                                            // Mobile camera certificate found
+                                            updateStatus(LocationStatus.GOOD_LOCATION, CameraZoneType.MOBILE_ONLY);
+                                            return;
+                                        }
+                                    }
+                                    // No cameras
+                                    updateStatus(LocationStatus.GOOD_LOCATION, CameraZoneType.NO_CAMERAS);
+                                    return;
 
+                                    // All cases handled and returned.
+                                    /* DONE. PROCESSING FINISHED. */
+
+                                }
+                            } catch (IOException e) {
+                                // TODO: Handle this exception more appropriately... Why IO Exception? Can fix it?
+                                // COULD NOT GET ADDRESS FROM LOCATION
+                                updateStatus(LocationStatus.UNCERTAIN_LOCATION, CameraZoneType.UNCERTAIN);
+                                return;
+                            }
                         }
                 });
+
+    }
+
+    public void updateStatus(LocationStatus newLocationStatus, CameraZoneType newCameraZoneType) {
+        /* 5. NOTIFY USER */
+
+        if (locationStatus != newLocationStatus || currentZoneType != newCameraZoneType || firstTimeRun) {
+            // If something has changed...
+            // Always update and warn if this is the first time run.
+
+            int newStatusText;
+            int newStatusColor;
+            //int announcementToMake; // Voice-line to read out
+            // TODO: ADD voice-line variables to switch case
+
+            switch (newLocationStatus) {
+                case NO_LOCATION:
+                    newStatusText = R.string.status_no_location;
+                    newStatusColor = getResources().getColor(R.color.status_no_location);
+                    break;
+
+                case UNCERTAIN_LOCATION:
+                    newStatusText = R.string.status_uncertain_location;
+                    newStatusColor = getResources().getColor(R.color.status_uncertain_location);
+                    break;
+
+                default:
+                    // If no appropriate value passed, just say no location. TODO: Handle this better.
+                    newStatusText = R.string.status_no_location;
+                    newStatusColor = getResources().getColor(R.color.status_no_location);
+                    break;
+            }
+            switch (newCameraZoneType) {
+                case NO_CAMERAS:
+                    newStatusText = R.string.status_no_cameras;
+                    newStatusColor = getResources().getColor(R.color.status_no_cameras);
+                    break;
+
+                case FIXED_ONLY:
+                    newStatusText = R.string.status_fixed_cameras;
+                    newStatusColor = getResources().getColor(R.color.status_fixed_cameras);
+                    break;
+
+                case MOBILE_ONLY:
+                    newStatusText = R.string.status_mobile_cameras;
+                    newStatusColor = getResources().getColor(R.color.status_mobile_cameras);
+                    break;
+
+                case BOTH_CAMERAS:
+                    newStatusText = R.string.status_both_cameras;
+                    newStatusColor = getResources().getColor(R.color.status_both_cameras);
+                    break;
+
+                /*default:
+                    // TODO: Handle this erroneous case
+                    // No default case, because if no location, then this is irrelevant.
+                    break;*/
+            }
+
+            txtStatus.setText(newStatusText);
+            txtStatus.setTextColor(newStatusColor);
+
+            // Update bubble
+            // TODO: update bubble
+
+            // Announce new status
+            // TODO: announce new status
+
+            // Update memory
+            locationStatus = newLocationStatus;
+            currentZoneType = newCameraZoneType;
+        }
 
     }
 
@@ -313,6 +433,21 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent ) {
             Log.d("LocationReceiver", "Trigger received, calling process now");
             mainActivity.doProcess();
+        }
+    }
+
+    public class CameraLocation {
+        // CLASS USED TO STORE EACH CAMERA LOCATION
+
+        private final String roadName;
+        private final String suburbName;
+
+        public CameraLocation(String newRoadName, String newSuburbName) {
+            this.roadName = newRoadName;
+            this.suburbName = newSuburbName;
+        }
+        public Boolean isMatch(String thisRoadName, String thisSuburbName){
+            return Objects.equals(roadName, thisRoadName) && Objects.equals(suburbName, thisSuburbName);
         }
     }
 
