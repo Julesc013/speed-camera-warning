@@ -38,10 +38,15 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private Switch switchToggleService;
+    private TextView txtService;
     private TextView txtStatus;
 
     private LocationReceiver locationReceiver = null;
     private Boolean myReceiverIsRegistered = false;
+
+    private Boolean locationAvailable = true;   // Initially true, so if location not found on first try, will warn user.
+    private Boolean inSpeedCameraZone = false;  // Initially false, so if in mobile camera zone on first try, will warn user.
+    private Boolean firstTimeRun = true;        // Is this the first time the process is running (e.g. on startup)?
 
 
     @Override
@@ -53,8 +58,9 @@ public class MainActivity extends AppCompatActivity {
 
         /* Add in Oncreate() funtion after setContentView() */
         // Initiate elements that will be use programmatically throughout the app
-        this.switchToggleService = (Switch) findViewById(R.id.switchToggleService);
-        this.txtStatus = (TextView) findViewById(R.id.txtStatus);
+        switchToggleService = (Switch) findViewById(R.id.switchToggleService);
+        txtService = (TextView) findViewById(R.id.txtService);
+        txtStatus = (TextView) findViewById(R.id.txtStatus);
 
         setSupportActionBar(binding.toolbar);
 
@@ -62,12 +68,22 @@ public class MainActivity extends AppCompatActivity {
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
+        /* My code */
+        firstTimeRun = true; // If recreating this view, then means the app is restarting, so reset this just to be sure.
+
         // Check if LocationService is already running,
         // If it is, make the UI reflect that.
+        // Toggle switch and set status text
         if (isServiceRunning(LocationService.class)) {
-            // Toggle switch and set status text
             switchToggleService.setChecked(true);
-            txtStatus.setText(R.string.status_active);
+            txtService.setText(R.string.service_active);
+            txtStatus.setText(R.string.status_waiting);
+            txtStatus.setTextColor(getResources().getColor(R.color.status_waiting));
+        } else {
+            switchToggleService.setChecked(false);
+            txtService.setText(R.string.service_inactive);
+            txtStatus.setText(R.string.status_service_inactive);
+            txtStatus.setTextColor(getResources().getColor(R.color.status_service_inactive));
         }
 
         locationReceiver = new LocationReceiver();
@@ -76,18 +92,12 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(locationReceiver, new IntentFilter(LocationService.INTENT_ID));
         myReceiverIsRegistered = true;
 
-        /*// Get access to shared preferences
-        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
-        final SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();*/
-
         switchToggleService.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked && !isServiceRunning(LocationService.class)) {
-                    // The toggle has been enabled
-                    startService();
+                    startService(); // The toggle has been enabled
                 } else if (!isChecked && isServiceRunning(LocationService.class)) {
-                    // The toggle has been disabled
-                    stopService();
+                    stopService(); // The toggle has been disabled
                 }
             }
         });
@@ -154,9 +164,14 @@ public class MainActivity extends AppCompatActivity {
     public void startService() {
         /* Start the Location Service */
 
+        // Update status indicator
+        txtService.setText(R.string.service_starting);
+
         // Check for updates to the database
+        // TODO: check for database updates
 
         // Download database
+        // TODO: download database!
 
         // Get context and intent required to start the location service
         Context context = this.getApplicationContext();
@@ -168,11 +183,9 @@ public class MainActivity extends AppCompatActivity {
         //context.startForegroundService(intentLocationService);
 
         // Update status indicator
-        txtStatus.setText(R.string.status_active);
-
-        /*// Make the app remember that the service is active
-        sharedPreferencesEditor.putBoolean("service_active", true);
-        sharedPreferencesEditor.apply();*/
+        txtService.setText(R.string.service_active);
+        txtStatus.setText(R.string.status_waiting);
+        txtStatus.setTextColor(getResources().getColor(R.color.status_waiting));
     }
 
     public void stopService() {
@@ -185,11 +198,9 @@ public class MainActivity extends AppCompatActivity {
         context.stopService(intentLocationService);
 
         // Update status indicator
-        txtStatus.setText(R.string.status_inactive);
-
-        /*// Make the app remember that the service is inactive
-        sharedPreferencesEditor.putBoolean("service_active", false);
-        sharedPreferencesEditor.apply();*/
+        txtService.setText(R.string.service_inactive);
+        txtStatus.setText(R.string.status_service_inactive);
+        txtStatus.setTextColor(getResources().getColor(R.color.status_service_inactive));
     }
 
     private void doProcess() {
@@ -221,21 +232,52 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess(Location location) {
 
-                            // Got last known location. In some rare situations this can be null.
-                            // Often will be "expired" (older than specified minimum).
-
-                            long age = (Calendar.getInstance().getTimeInMillis() / 1000) - location.getTime();
-                            if (location == null || age > LocationService.SERVICE_INTERVAL) {
-
-                                // Last known location is expired, get a fresh location
-                                // TODO: GET FRESH LOCATION
-
+                            // Asked for last known location. In some rare situations this can be null.
+                            if (location == null) {
+                                // Failed to get last known location, get a fresh location
+                                location = getFreshLocation();
+                            } else {
+                                // Got last known location, now check if it is older than the timer interval (what we call "expired")
+                                long age = (Calendar.getInstance().getTimeInMillis() / 1000) - location.getTime();
+                                if (age > LocationService.SERVICE_INTERVAL) {
+                                    // Last known location is expired, get a fresh location
+                                    location = getFreshLocation();
+                                }
                             }
 
-                            // Location is fresh enough to do processing on it now
+                            // If couldn't get location, handle that and then fail out.
+                            if (location == null) {
+                                // COULD NOT GET LOCATION
+                                if (locationAvailable || firstTimeRun) { // If location was previously available...
+                                    locationAvailable = false;
+                                    txtStatus.setText(R.string.status_no_location);
+                                    txtStatus.setTextColor(getResources().getColor(R.color.status_no_location));
+
+                                    // Update bubble (grey)
+
+                                    // TODO: announce that we lost location
+                                    //       "Location lost"
+                                }
+                                return;
+                            } else {
+                                // FOUND LOCATION
+                                if (!locationAvailable) { // If location was previously unavailable...
+                                    locationAvailable = true;
+                                    txtStatus.setText(R.string.status_waiting);
+                                    txtStatus.setTextColor(getResources().getColor(R.color.status_waiting));
+
+                                    // Update bubble (yellow)
+
+                                    // TODO: announce that we found location again
+                                    //       "Location locked on"
+                                }
+                                // Continue processing...
+                            }
+
+                            // At this point, the location exists and is fresh enough to do processing on it
                             // 2. GEOCODE ADDRESS
 
-
+                            //ACCURACY OF ADDRESS (YELLOW BUBBLE) (WARNING NOT ACCURATE)
 
                             // 3. CHECK DATABASE
 
@@ -245,6 +287,16 @@ public class MainActivity extends AppCompatActivity {
 
                         }
                 });
+
+    }
+
+    public Location getFreshLocation() {
+        // Get a fresh location from a fused location service
+
+        // TODO: GET FRESH LOCATION
+        // Can pass fused service as input to this function?
+
+        return new Location("null");
 
     }
 
