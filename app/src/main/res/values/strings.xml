@@ -7,8 +7,17 @@
 
     <!-- Strings in first fragment -->
     <string name="instruction_start_stop">Toggle the switch below to start or stop the camera warning service.</string>
-    <string name="status_active">Status: ACTIVE!</string>
-    <string name="status_inactive">Status: Inactive</string>
+    <string name="service_active">Service: ACTIVE!</string>
+    <string name="service_inactive">Service: Inactive</string>
+    <string name="service_starting">Service: Starting…</string>
+    <!--<string name="service_downloading">Service: Downloading database…</string>-->
+    <string name="status_mobile_cameras">Status: IN MOBILE CAMERA ZONE!</string>
+    <string name="status_fixed_cameras">Status: Fixed cameras!</string>
+    <string name="status_no_cameras">Status: Safe, no cameras</string>
+    <string name="status_no_location">Status: CANNOT GET LOCATION!</string>
+    <string name="status_uncertain_location">Status: UNSURE OF LOCATION!</string>
+    <string name="status_waiting">Status: Waiting…</string>
+    <string name="status_service_inactive">Status: Service inactive</string>
 
     <!-- For foreground location service notification -->
     <string name="notification_title">Speed Camera Warning</string>
