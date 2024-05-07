@@ -52,8 +52,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtService;
     private TextView txtStatus;
 
-    private LocationReceiver locationReceiver = null;
-    private Boolean myReceiverIsRegistered = false;
+//    private LocationReceiver locationReceiver = null;
+//    private Boolean myReceiverIsRegistered = false;
 
     private LocationStatus locationStatus = LocationStatus.GOOD_LOCATION;   // Initially so if location not found on first try, will warn user.
     private CameraZoneType currentZoneType = CameraZoneType.NO_CAMERAS;     // Initially so if in mobile camera zone on first try, will warn user.
@@ -89,20 +89,25 @@ public class MainActivity extends AppCompatActivity {
         /* My code */
         firstTimeRun = true; // If recreating this view, then means the app is restarting, so reset this just to be sure.
 
-        // Check if LocationService is already running,
-        // If it is, make the UI reflect that.
-        // Toggle switch and set status text
-        if (isServiceRunning(LocationService.class)) {
-            switchToggleService.setChecked(true);
-            txtService.setText(R.string.service_active);
-            txtStatus.setText(R.string.status_waiting);
-            txtStatus.setTextColor(getResources().getColor(R.color.status_waiting));
-        } else {
-            switchToggleService.setChecked(false);
-            txtService.setText(R.string.service_inactive);
-            txtStatus.setText(R.string.status_service_inactive);
-            txtStatus.setTextColor(getResources().getColor(R.color.status_service_inactive));
-        }
+//        // Check if LocationService is already running,
+//        // If it is, make the UI reflect that.
+//        // Toggle switch and set status text
+//        if (isServiceRunning(LocationService.class)) {
+//            switchToggleService.setChecked(true);
+//            txtService.setText(R.string.service_active);
+//            txtStatus.setText(R.string.status_waiting);
+//            txtStatus.setTextColor(getResources().getColor(R.color.status_waiting));
+//        } else {
+//            switchToggleService.setChecked(false);
+//            txtService.setText(R.string.service_inactive);
+//            txtStatus.setText(R.string.status_service_inactive);
+//            txtStatus.setTextColor(getResources().getColor(R.color.status_service_inactive));
+//        }
+        // ASSUME FUSED LOCATION SERVICES ARE NOT RUNNING YET
+        switchToggleService.setChecked(false);
+        txtService.setText(R.string.service_inactive);
+        txtStatus.setText(R.string.status_service_inactive);
+        txtStatus.setTextColor(getResources().getColor(R.color.status_service_inactive));
 
 //        locationReceiver = new LocationReceiver();
 //        locationReceiver.setMainActivityHandler(this);
