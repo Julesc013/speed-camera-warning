@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 26
 
     defaultConfig {
         applicationId "com.julescarboni.speedcamerawarning"
-        minSdk 30
-        targetSdk 32
+        minSdk 26
+        targetSdk 26
         versionCode 1
         versionName "1.0"
 
@@ -28,6 +28,7 @@ android {
     buildFeatures {
         viewBinding true
     }
+    namespace 'com.julescarboni.speedcamerawarning'
 }
 
 dependencies {
