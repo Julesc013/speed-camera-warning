@@ -45,6 +45,8 @@ import androidx.navigation.ui.NavigationUI;
 
 public class MainActivity extends AppCompatActivity {
 
+    private int SERVICE_INTERVAL = 1000; // TODO: Make settable between 1 to 10 seconds
+
     private AppBarConfiguration appBarConfiguration;
 
     @SuppressLint("UseSwitchCompatOrMaterialCode")
@@ -125,11 +127,22 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        });
 
+        // Start location updates
+        startLocationUpdates();
+
         // Initialize FusedLocationProviderClient
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Start location updates
-        startLocationUpdates();
+        /* CHECK FOR DATABASE UPDATES */
+
+        // Update status indicator
+        txtService.setText(R.string.service_starting);
+
+        // Check for updates to the database
+        // TODO: check for database updates
+
+        // Download database
+        // TODO: download database!
 
     }
     /*@Override
@@ -191,52 +204,52 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    public void startService() {
-        /* Start the Location Service */
+//    public void startService() {
+//        /* Start the Location Service */
+//
+//        // Update status indicator
+//        txtService.setText(R.string.service_starting);
+//
+//        // Check for updates to the database
+//        // TODO: check for database updates
+//
+//        // Download database
+//        // TODO: download database!
+//
+////        // Get context and intent required to start the location service
+////        Context context = this.getApplicationContext();
+////        Intent intentLocationService = new Intent(this, LocationService.class);
+////        // Start service
+////        intentLocationService.putExtra("inputExtra", "Foreground Service Example in Android");
+////        //getActivity().startService(intentLocationService);
+////        ContextCompat.startForegroundService(context, intentLocationService);
+////        //context.startForegroundService(intentLocationService);
+//
+//        // Update status indicator
+//        txtService.setText(R.string.service_active);
+//        txtStatus.setText(R.string.status_waiting);
+//        txtStatus.setTextColor(getResources().getColor(R.color.status_waiting));
+//    }
 
-        // Update status indicator
-        txtService.setText(R.string.service_starting);
-
-        // Check for updates to the database
-        // TODO: check for database updates
-
-        // Download database
-        // TODO: download database!
-
-//        // Get context and intent required to start the location service
-//        Context context = this.getApplicationContext();
-//        Intent intentLocationService = new Intent(this, LocationService.class);
-//        // Start service
-//        intentLocationService.putExtra("inputExtra", "Foreground Service Example in Android");
-//        //getActivity().startService(intentLocationService);
-//        ContextCompat.startForegroundService(context, intentLocationService);
-//        //context.startForegroundService(intentLocationService);
-
-        // Update status indicator
-        txtService.setText(R.string.service_active);
-        txtStatus.setText(R.string.status_waiting);
-        txtStatus.setTextColor(getResources().getColor(R.color.status_waiting));
-    }
-
-    public void stopService() {
-        /* Stop the Location Service */
-
-//        // Get context and intent required to stop the location service
-//        Context context = this.getApplicationContext();
-//        // Stop service
-//        Intent intentLocationService = new Intent(this, LocationService.class);
-//        context.stopService(intentLocationService);
-
-        // Update status indicator
-        txtService.setText(R.string.service_inactive);
-        txtStatus.setText(R.string.status_service_inactive);
-        txtStatus.setTextColor(getResources().getColor(R.color.status_service_inactive));
-    }
+//    public void stopService() {
+//        /* Stop the Location Service */
+//
+////        // Get context and intent required to stop the location service
+////        Context context = this.getApplicationContext();
+////        // Stop service
+////        Intent intentLocationService = new Intent(this, LocationService.class);
+////        context.stopService(intentLocationService);
+//
+//        // Update status indicator
+//        txtService.setText(R.string.service_inactive);
+//        txtStatus.setText(R.string.status_service_inactive);
+//        txtStatus.setTextColor(getResources().getColor(R.color.status_service_inactive));
+//    }
 
     private void startLocationUpdates() {
         // Create location request
         LocationRequest locationRequest = LocationRequest.create()
-                .setInterval(LocationService.SERVICE_INTERVAL) // Interval in milliseconds (adjust as needed)
+                .setInterval(SERVICE_INTERVAL) // Interval in milliseconds (adjust as needed)
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         // Request location updates
