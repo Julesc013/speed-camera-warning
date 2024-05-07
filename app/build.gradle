@@ -8,6 +8,7 @@ android {
     defaultConfig {
         applicationId "com.julescarboni.speedcamerawarning"
         minSdk 26
+        //noinspection ExpiredTargetSdkVersion
         targetSdk 26
         versionCode 1
         versionName "1.0"
