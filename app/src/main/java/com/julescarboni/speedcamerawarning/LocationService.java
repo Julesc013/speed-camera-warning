@@ -101,14 +101,13 @@ public class LocationService extends Service {
         // the NotificationChannel class is new and not in the support library
 
         // Build API level must be 26 or greater (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O).
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel serviceChannel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Foreground Service Channel",
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(serviceChannel);
-        }
+        NotificationChannel serviceChannel = new NotificationChannel(
+                CHANNEL_ID,
+                "Foreground Service Channel",
+                NotificationManager.IMPORTANCE_DEFAULT
+        );
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        assert manager != null;
+        manager.createNotificationChannel(serviceChannel);
     }
 }

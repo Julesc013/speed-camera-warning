@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     private List<CameraLocation> mobileCameraLocations;
     //private List<CameraLocation> fixedCameraLocations;
     //private List<CameraLocation> wetFilmCameraLocations;
+    //private List<CameraLocation> phoneCameraLocations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isServiceRunning(Class<?> serviceClass) {
         // Check if the service is already running
         ActivityManager manager = (ActivityManager) this.getSystemService(Context.ACTIVITY_SERVICE);
+        assert manager != null;
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (serviceClass.getName().equals(service.service.getClassName())) {
                 return true;
@@ -309,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
                                     /* 4. CHECK DATABASE */
 
                                     // Search through all databases to see if address has a camera
-                                    // TODO: Check if has fixed or wet film cameras
+                                    // TODO: Check if has fixed, phone, or wet film cameras
 
                                     // Check if has a mobile camera
                                     for (CameraLocation cameraLocation : mobileCameraLocations) {
@@ -350,22 +352,13 @@ public class MainActivity extends AppCompatActivity {
             //int announcementToMake; // Voice-line to read out
             // TODO: ADD voice-line variables to switch case
 
-            switch (newLocationStatus) {
-                case NO_LOCATION:
-                    newStatusText = R.string.status_no_location;
-                    newStatusColor = getResources().getColor(R.color.status_no_location);
-                    break;
-
-                case UNCERTAIN_LOCATION:
-                    newStatusText = R.string.status_uncertain_location;
-                    newStatusColor = getResources().getColor(R.color.status_uncertain_location);
-                    break;
-
-                default:
-                    // If no appropriate value passed, just say no location. TODO: Handle this better.
-                    newStatusText = R.string.status_no_location;
-                    newStatusColor = getResources().getColor(R.color.status_no_location);
-                    break;
+            if (Objects.requireNonNull(newLocationStatus) == LocationStatus.UNCERTAIN_LOCATION) {
+                newStatusText = R.string.status_uncertain_location;
+                newStatusColor = getResources().getColor(R.color.status_uncertain_location);
+            } else {
+                // If no appropriate value passed, just say no location. TODO: Handle this better.
+                newStatusText = R.string.status_no_location;
+                newStatusColor = getResources().getColor(R.color.status_no_location);
             }
             switch (newCameraZoneType) {
                 case NO_CAMERAS:
