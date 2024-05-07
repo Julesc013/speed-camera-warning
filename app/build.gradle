@@ -3,13 +3,13 @@ plugins {
 }
 
 android {
-    compileSdk 26
+    compileSdk 28
 
     defaultConfig {
         applicationId "com.julescarboni.speedcamerawarning"
-        minSdk 26
+        minSdk 28
         //noinspection ExpiredTargetSdkVersion
-        targetSdk 26
+        targetSdk 28
         versionCode 1
         versionName "1.0"
 
