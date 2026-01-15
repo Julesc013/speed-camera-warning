@@ -46,8 +46,10 @@
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textStyle="bold"
-        tools:layout_editor_absoluteX="205dp"
-        tools:layout_editor_absoluteY="436dp" />
+        app:layout_constraintBottom_toTopOf="@+id/switchToggleService"
+        app:layout_constraintTop_toBottomOf="@+id/txtInstruction"
+        app:layout_constraintVertical_bias="0.3"
+        tools:layout_editor_absoluteX="206dp" />
 
     <TextView
         android:id="@+id/txtStatus"
@@ -62,5 +64,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtService"
         app:layout_constraintVertical_bias="0.15" />
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:layout_width="wrap_content"
+        android:layout_height="18dp"
+        android:max="5"
+        android:progress="2"
+        app:layout_constraintBottom_toTopOf="@+id/switchToggleService"
+        app:layout_constraintTop_toBottomOf="@+id/txtTempLocation"
+        app:layout_constraintVertical_bias="0.66999996"
+        tools:layout_editor_absoluteX="185dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

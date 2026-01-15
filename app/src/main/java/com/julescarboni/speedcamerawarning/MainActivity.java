@@ -3,6 +3,8 @@ package com.julescarboni.speedcamerawarning;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +14,9 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,7 +29,13 @@ import com.julescarboni.speedcamerawarning.databinding.ActivityMainBinding;
 import com.julescarboni.speedcamerawarning.enums.CameraZoneType;
 import com.julescarboni.speedcamerawarning.enums.LocationStatus;
 
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -46,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
 
+    // UI elements
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private Switch switchToggleService;
     private TextView txtService;
@@ -55,13 +66,18 @@ public class MainActivity extends AppCompatActivity {
     private LocationReceiver locationReceiver = null;
     private Boolean myReceiverIsRegistered = false;
 
+    // State tracking variables
     private LocationStatus currentLocationStatus = LocationStatus.GOOD_LOCATION;   // Initially so if location not found on first try, will warn user.
     private CameraZoneType currentZoneType = CameraZoneType.NO_CAMERAS;     // Initially so if in mobile camera zone on first try, will warn user.
     private Boolean firstTimeRun = true;    // Is this the first time the process is running (e.g. on startup)?
 
+    // Camera location database
     private List<CameraLocation> mobileCameraLocations = new ArrayList<>();
-    //public List<CameraLocation> fixedCameraLocations = new ArrayList<>();
-    //public List<CameraLocation> wetFilmCameraLocations = new ArrayList<>();
+
+    // Download progress dialog
+    private ProgressDialog pDialog;
+    public static final int progress_bar_type = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -180,6 +196,100 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    @Override
+    protected Dialog onCreateDialog(int id) {
+        /* Show dialog for download progress */
+        switch (id) {
+            case progress_bar_type: // we set this to 0
+                pDialog = new ProgressDialog(this);
+                pDialog.setMessage("Downloading database. Please wait...");
+                pDialog.setIndeterminate(false);
+                pDialog.setMax(100);
+                pDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                pDialog.setCancelable(true);
+                pDialog.show();
+                return pDialog;
+            default:
+                return null;
+        }
+    }
+
+    class DownloadFileFromURL extends AsyncTask<String, String, String> {
+        /* Background Async Task to download file */
+
+        // Before starting background thread Show Progress Bar Dialog
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            showDialog(progress_bar_type);
+        }
+
+        // Downloading file in background thread
+        @Override
+        protected String doInBackground(String... f_url) {
+            int count;
+            try {
+                URL url = new URL(f_url[0]);
+                URLConnection connection = url.openConnection();
+                connection.connect();
+
+                // this will be useful so that you can show a tipical 0-100%
+                // progress bar
+                int lenghtOfFile = connection.getContentLength();
+
+                // download the file
+                InputStream input = new BufferedInputStream(url.openStream(),
+                        8192);
+
+                // Output stream
+                OutputStream output = new FileOutputStream(Environment
+                        .getExternalStorageDirectory().toString()
+                        + "/mobile_cameras_latest.xlsx");
+
+                byte data[] = new byte[1024];
+
+                long total = 0;
+
+                while ((count = input.read(data)) != -1) {
+                    total += count;
+                    // publishing the progress....
+                    // After this onProgressUpdate will be called
+                    publishProgress("" + (int) ((total * 100) / lenghtOfFile));
+
+                    // writing data to file
+                    output.write(data, 0, count);
+                }
+
+                // flushing output
+                output.flush();
+
+                // closing streams
+                output.close();
+                input.close();
+
+            } catch (Exception e) {
+                Log.e("Error: ", e.getMessage());
+            }
+
+            return null;
+        }
+
+        // Updating progress bar
+        protected void onProgressUpdate(String... progress) {
+            // setting progress percentage
+            pDialog.setProgress(Integer.parseInt(progress[0]));
+        }
+
+        // After completing background task Dismiss the progress dialog
+        @Override
+        protected void onPostExecute(String file_url) {
+            // dismiss the dialog after the file was downloaded
+            dismissDialog(progress_bar_type);
+
+        }
+
+    }
+
     public void startService() {
         /* Start the Location Service */
 
@@ -194,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Download database
         // TODO: download database!
-        mobileCameraLocations.add(new CameraLocation("Berringa Road", "Park Orchards")); //TODO: TEMP
+
 
         /* Secondly start the service*/
 
@@ -318,7 +428,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // Got last known location, now check if it is older than the timer interval (what we call "expired")
             long age = (Calendar.getInstance().getTimeInMillis() / 1000) - location.getTime();
-            if (age > LocationService.SERVICE_INTERVAL) {
+            if (age > (LocationService.SERVICE_INTERVAL * LocationService.EXPIRY_MULTIPLIER)) {
                 // Last known location is expired, get a fresh location
                 // TODO: GET FRESH LOCATION
             }

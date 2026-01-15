@@ -23,7 +23,8 @@ public class LocationService extends Service {
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
     //private final Context context = getApplicationContext();
     private Timer timer = new Timer(); // Timer for the service to use
-    public static final int SERVICE_INTERVAL = 5000; // TODO: Set to 10 seconds
+    public static final int SERVICE_INTERVAL = 5000; // TODO: Make variable/settable!
+    public static final int EXPIRY_MULTIPLIER = 3; // Location data is considered expired if it is this many times older than the service interval. TODO: Make variable/settable!
 
     /*@Override
     public void onStart(Intent intent, int startId) {
